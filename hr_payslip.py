@@ -300,7 +300,7 @@ class HrPayslip(models.Model):
             # Weekday overtime (Mon-Fri)
             weekday_overtime = sum(
                 att.overtime_hours for att in attendances
-                if att.overtime_hours and att.check_in and att.check_in.weekday() <= 5
+                if att.overtime_hours and att.check_in and att.check_in.weekday() < 5
             )
             if weekday_overtime >= 0:
                 res.append({
@@ -315,7 +315,7 @@ class HrPayslip(models.Model):
             # Weekend overtime (Sat-Sun)
             weekend_overtime = sum(
                 att.overtime_hours for att in attendances
-                if att.overtime_hours and att.check_in and att.check_in.weekday() > 5
+                if att.overtime_hours and att.check_in and att.check_in.weekday() >= 5
             )
             if weekend_overtime >= 0:
                 res.append({
