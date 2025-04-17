@@ -279,8 +279,11 @@ class HrPayslip(models.Model):
                 ('check_in', '>=', day_from),
                 ('check_out', '<=', day_to),
             ])
-            # Calculate unique days from attendance
-            worked_dates = set(att.check_in.date() for att in attendances if att.check_in)
+            # Calculate unique weekdays from attendance
+            worked_dates = set(
+                att.check_in.date() for att in attendances
+                if att.check_in and att.check_in.weekday() < 5  # Monday=0, Friday=4
+            )
             worked_days_count = len(worked_dates)
             # Total worked hours
             total_hours = worked_days_count * contract.resource_calendar_id.hours_per_day
