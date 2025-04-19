@@ -280,23 +280,36 @@ class HrPayslip(models.Model):
                 ('check_out', '<=', day_to),
             ])
             # Calculate unique weekdays from attendance
-            worked_dates = set(
+            weekdays_worked_dates = set(
                 att.check_in.date() for att in attendances
                 if att.check_in and att.check_in.weekday() < 5  # Monday=0, Friday=4
             )
-            worked_days_count = len(worked_dates)
+            weekdayas_worked_days_count = len(weekdays_worked_dates)
             # Total worked hours
-            total_hours = worked_days_count * contract.resource_calendar_id.hours_per_day
+            total_hours = weekdayas_worked_days_count * contract.resource_calendar_id.hours_per_day
             work_day_att = {
-                'name': _("Normal Working Days paid at 100%"),
+                'name': _("Hafta İçi Çalışma "),
                 'sequence': 1,
                 'code': 'WORK100',
-                'number_of_days': worked_days_count,
+                'number_of_days': weekdayas_worked_days_count,
                 'number_of_hours': total_hours,
                 'contract_id': contract.id,
             }
             res.append(work_day_att)
-
+            week_end_worked_dates = set(
+                att.check_in.date() for att in attendances
+                if att.check_in and att.check_in.weekday() < 5  # Monday=0, Friday=4
+            )
+            week_end_worked_days_count=len(week_end_worked_dates)
+            week_end_work_days_att={
+                'name': _("Hafta Sonu Çalışma "),
+                'sequence': 1,
+                'code': 'WEEKEND',
+                'number_of_days': week_end_worked_days_count,
+                'number_of_hours': total_hours,
+                'contract_id': contract.id,
+            }
+            res.append(week_end_work_days_att)
             # Weekday overtime (Mon-Fri)
             weekday_overtime = sum(
                 att.overtime_hours for att in attendances
@@ -304,9 +317,9 @@ class HrPayslip(models.Model):
             )
             if weekday_overtime >= 0:
                 res.append({
-                    'name': _("Weekday Overtime"),
+                    'name': _("Haftaiçi Fazla Mesai"),
                     'sequence': 20,
-                    'code': 'OVERTIME',
+                    'code': 'WEEKDAY_OVERTIME',
                     'number_of_days': 0.0,
                     'number_of_hours': weekday_overtime,
                     'contract_id': contract.id,
@@ -319,9 +332,9 @@ class HrPayslip(models.Model):
             )
             if weekend_overtime >= 0:
                 res.append({
-                    'name': _("Weekend Overtime"),
+                    'name': _("Haftasonu Fazla Mesai"),
                     'sequence': 21,
-                    'code': 'WEEKEND_OT',
+                    'code': 'WEEKEND_OVERTIME',
                     'number_of_days': 0.0,
                     'number_of_hours': weekend_overtime,
                     'contract_id': contract.id,
